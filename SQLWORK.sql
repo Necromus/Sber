@@ -4,11 +4,11 @@ id int,
 name varchar(10), 
 age int)
 
-insert into test values (1, 'Âàñÿ', 23)
-insert into test values (2, 'Ïåòÿ', 40)
-insert into test values (3, 'Ìàøà', 19)
-insert into test values (4, 'Ìàðèíà', 23)
-insert into test values (5, 'Ñåðãåé', 34)
+insert into test values (1, 'Вася', 23)
+insert into test values (2, 'Петя', 40)
+insert into test values (3, 'Маша', 19)
+insert into test values (4, 'Марина', 23)
+insert into test values (5, 'Сергей', 34)
 
 --1 ВАРИАНТ
 select top (3) name 
