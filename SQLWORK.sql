@@ -45,7 +45,6 @@ abonent bigint,
 region_id int,
 dttm datetime)
 
-
 insert into test2 values 
 (7072110988, 32722, '20210818 13:15:00'),
 (7072110988, 32722,'20210818 14:00'), 
@@ -72,16 +71,6 @@ item_name nvarchar(150),
 item_price float,
 created_dttm datetime default GETDATE())
 
-insert into item_prices values (1,'курочка', 120.22, '20230501 09:27')
-insert into item_prices values (2,'манго', 13.22, '20230502 09:27')
-insert into item_prices values (3,'яблоко', 10.22, '20230503 09:27')
-insert into item_prices values (4,'киви', 132.22, '20230504 09:27')
-insert into item_prices values (5,'помидоры', 23.22, '20230505 09:27')
-insert into item_prices values (6,'колбаски', 333.22, '20230506 09:27')
-insert into item_prices values (7,'сосиски', 533.22, '20230206 09:27')
-insert into item_prices values (8,'морковь', 20.31, '20230209 09:27')
-
-
 create table dict_item_prices(
 item_id int,
 item_name nvarchar(150),
@@ -89,27 +78,45 @@ item_price float,
 valid_from_dt date,
 valid_to_dt date)
 
-create trigger item_prices_insert 
-on item_prices after update 
-as 
+create trigger item_pices_insert
+on item_prices after insert
+as
 begin
-
 declare @item_id int
-select @item_id = item_id from deleted
+select @item_id = item_id from inserted
 declare @item_name nvarchar(150)
-select @item_name = item_name from deleted
+select @item_name = item_name from inserted
 declare @item_price float
-select @item_price = item_price from deleted
+select @item_price = item_price from inserted
 declare @created_dttm datetime
-select @created_dttm = created_dttm from deleted
+select @created_dttm = created_dttm from inserted
 
-insert into dict_item_prices values (@item_id,@item_name, @item_price, cast(@created_dttm as date), Dateadd(Day, - 1, GETDATE()))
+insert into dict_item_prices values (@item_id,@item_name, @item_price, cast(@created_dttm as date), '99991231')
 
 end
 
 
-update item_prices set item_price = 122.22, created_dttm = GETDATE() where item_id = 3
-update item_prices set item_price = 12.42, created_dttm = GETDATE() where item_id = 5
+create trigger item_pices_update
+on item_prices after update
+as
+begin
+declare @item_id int
+declare @item_name nvarchar(150)
+declare @item_price float
+declare @created_dttm datetime
+
+select @item_id = item_id from deleted
+update dict_item_prices set valid_to_dt = Dateadd(Day, - 1, GETDATE()) where item_id = @item_id and valid_to_dt = '99991231'
+
+select @item_id = item_id from inserted
+select @item_name = item_name from inserted
+select @item_price = item_price from inserted
+select @created_dttm = created_dttm from inserted
+
+insert into dict_item_prices values (@item_id,@item_name, @item_price, cast(@created_dttm as date), '99991231')
+
+end
+
 
 --4 ЗАДАНИЕ
 create table transaction_details(
@@ -119,38 +126,26 @@ item_id int,
 item_number int,
 transaction_dttm datetime)
 
-insert into transaction_details values (1,1,1,10, getdate())
-insert into transaction_details values (2,1,2,5, getdate())
-insert into transaction_details values (3,1,5,7, '20230506 09:27')
-insert into transaction_details values (4,1,7,2, '20230210 09:27')
-insert into transaction_details values (5,2,6,2, '20230211 09:27')
-insert into transaction_details values (6,2,6,12, getdate())
-
 create table customer_aggr(
 customer_id int,
 amount_spent_1m float,
 top_item_1m nvarchar(150))
 
-CREATE PROCEDURE CustomerAggrProcedure AS
-
-BEGIN
-
-DECLARE @table1 TABLE(customer_id int, transaction_dttm datetime, item_name nVARCHAR(150), item_price float, sum_item_price float)
-
-INSERT INTO @table1  (customer_id, transaction_dttm, item_name, item_price, sum_item_price) select transaction_details.customer_id, transaction_details.transaction_dttm, dip.item_name, dip.item_price, dip.item_price * transaction_details.item_number as sum_item_price from dict_item_prices as dip join transaction_details on dip.item_id = transaction_details.item_id where transaction_details.transaction_dttm between dip.valid_from_dt and dip.valid_to_dt union 
-select transaction_details.customer_id, transaction_details.transaction_dttm, itp.item_name, itp.item_price, itp.item_price * transaction_details.item_number as sum_item_price from item_prices as itp join transaction_details on itp.item_id = transaction_details.item_id where (transaction_details.transaction_dttm between created_dttm and getdate()) and (transaction_dttm between Dateadd(Day, - 30, GETDATE()) and GETDATE())
+create procedure customer_aggr_procedure
+as
+begin
 
 insert into customer_aggr (customer_id, amount_spent_1m, top_item_1m) 
-select bb.customer_id, bb.sum_all_item, gg.item_name from (select customer_id, SUM(sum_item_price) as sum_all_item from @table1 group by customer_id) as bb
-join
-(select uyu.customer_id, yuy.item_name from (select ii.customer_id, Max(ii.sum_item_price) as maxsum from @table1 as ii group by ii.customer_id)
-as uyu join 
-@table1
-as yuy on uyu.maxsum = yuy.sum_item_price) as gg on bb.customer_id = gg.customer_id
+select tablesum.customer_id, tablesum.sum_item_price_number, tablemaxname.item_name from (select i.customer_id, SUM(item_price_number) as sum_item_price_number from (select transaction_dttm, customer_id, td.item_id, item_price * item_number as item_price_number from transaction_details as td join dict_item_prices as dip on td.item_id = dip.item_id and td.transaction_dttm between dip.valid_from_dt and dip.valid_to_dt) as i where i.transaction_dttm between Dateadd(Day, - 30, GETDATE()) and GETDATE() group by i.customer_id)
+as tablesum join 
+(select tablemax.customer_id, tableall.item_name from (select  i.customer_id, MAX(item_price_number) as max_item_price_number from (select transaction_dttm, customer_id, td.item_id, item_price * item_number as item_price_number from transaction_details as td join dict_item_prices as dip on td.item_id = dip.item_id and td.transaction_dttm between dip.valid_from_dt and dip.valid_to_dt) as i where i.transaction_dttm between Dateadd(Day, - 30, GETDATE()) and GETDATE() group by i.customer_id)
+as tablemax join 
+(select transaction_dttm, customer_id, item_name, td.item_id, item_price * item_number as item_price_number from transaction_details as td join dict_item_prices as dip on td.item_id = dip.item_id and td.transaction_dttm between dip.valid_from_dt and dip.valid_to_dt where transaction_dttm between Dateadd(Day, - 30, GETDATE()) and GETDATE()) 
+as tableall on tablemax.max_item_price_number = tableall.item_price_number) as tablemaxname on tablesum.customer_id = tablemaxname.customer_id
 
-END
+end
 
-exec CustomerAggrProcedure
+exec customer_aggr_procedure
 
 --5 ЗАДАНИЕ
 create table post(
