@@ -1,26 +1,26 @@
---1 ÇÀÄÀÍÈÅ
+--1 Ğ—ĞĞ”ĞĞĞ˜Ğ•
 create table test (
 id int, 
 name varchar(10), 
 age int)
 
-insert into test values (1, 'Âàñÿ', 23)
-insert into test values (2, 'Ïåòÿ', 40)
-insert into test values (3, 'Ìàøà', 19)
-insert into test values (4, 'Ìàğèíà', 23)
-insert into test values (5, 'Ñåğãåé', 34)
+insert into test values (1, 'Ã‚Ã Ã±Ã¿', 23)
+insert into test values (2, 'ÃÃ¥Ã²Ã¿', 40)
+insert into test values (3, 'ÃŒÃ Ã¸Ã ', 19)
+insert into test values (4, 'ÃŒÃ Ã°Ã¨Ã­Ã ', 23)
+insert into test values (5, 'Ã‘Ã¥Ã°Ã£Ã¥Ã©', 34)
 
---1 Âàğèàíò
+--1 Ğ’ĞĞ Ğ˜ĞĞĞ¢
 select top (3) name 
 from test 
 order by age asc  
 
---2 Âàğèàíò
+--2 Ğ’ĞĞ Ğ˜ĞĞĞ¢
 select name
 from test
 order by age offset 0 rows fetch next 3 rows only
 
---3 Âàğèàíò
+--3 Ğ’ĞĞ Ğ˜ĞĞĞ¢
 select name
 from test
 where age in (
@@ -30,7 +30,7 @@ where age in (
 )
 order by age
 
---4 Âàğèàíò
+--4 Ğ’ĞĞ Ğ˜ĞĞĞ¢
 select t1.name
 from test t1
 join (
@@ -39,7 +39,7 @@ join (
   order by age
 ) t2 on t1.id = t2.id order by age
 
---2 ÇÀÄÀÍÈÅ
+--2 Ğ—ĞĞ”ĞĞĞ˜Ğ•
 create table test2(
 abonent bigint,
 region_id int,
@@ -64,7 +64,7 @@ from
 join test2 as b
 	on i.dttm = b.dttm
 
---3 ÇÀÄÀÍÈÅ
+--3 Ğ—ĞĞ”ĞĞĞ˜Ğ•
 create table item_prices(
 item_id int,
 item_name nvarchar(150),
@@ -118,7 +118,7 @@ insert into dict_item_prices values (@item_id,@item_name, @item_price, cast(@cre
 end
 
 
---4 ÇÀÄÀÍÈÅ
+--4 Ğ—ĞĞ”ĞĞĞ˜Ğ•
 create table transaction_details(
 transaction_id int,
 customer_id int,
@@ -147,7 +147,7 @@ end
 
 exec customer_aggr_procedure
 
---5 ÇÀÄÀÍÈÅ
+--5 Ğ—ĞĞ”ĞĞĞ˜Ğ•
 create table post(
 id int,
 created_at datetime,
